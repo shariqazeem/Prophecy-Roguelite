@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#14101e"/>
+  <circle cx="64" cy="50" r="30" fill="none" stroke="#9b59b6" stroke-width="3"/>
+  <circle cx="64" cy="50" r="10" fill="#9b59b6"/>
+  <polygon points="64,90 50,110 78,110" fill="#9b59b6"/>
+  <text x="64" y="125" text-anchor="middle" fill="#e8d44d" font-size="14" font-family="sans-serif">PROPHECY</text>
+</svg>

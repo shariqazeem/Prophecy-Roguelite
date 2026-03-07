@@ -1,0 +1,44 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Prophecy Roguelite"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=600
+window/stretch/mode="canvas_items"
+
+[dojo]
+
+config/katana_url="http://localhost:5050"
+config/contract_address="0x0"
+config/torii/torii_url="http://localhost:8080"
+config/torii/worlds=Array[String]([])
+config/account/address="0x0"
+config/account/public_key="0x0"
+config/account/private_key="0x0"
+config/fixed_point/default=128
+config/fixed_point/64=40
+config/fixed_point/128=60
+config/fixed_point/256=123
+config/debug/error=true
+config/debug/warning=true
+config/debug/info=true
+config/debug/success=true
+config/debug/debug=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

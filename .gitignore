@@ -1,0 +1,25 @@
+# Godot
+game/.godot/
+game/.import/
+game/export/
+*.tmp
+*.log
+
+# Dojo
+contracts/target/
+contracts/manifest_dev.json
+contracts/manifest_release.json
+
+# Downloads / temp
+*.zip
+godot-dojo-addon-tmp/
+dojo-starter-tmp/
+godot-client/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

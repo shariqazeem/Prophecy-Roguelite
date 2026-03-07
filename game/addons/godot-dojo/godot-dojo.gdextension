@@ -1,0 +1,48 @@
+[configuration]
+
+entry_symbol = "godotdojo_library_init"
+compatibility_minimum = "4.3"
+reloadable = true
+version = "v0.7.3.3-dirty"
+[libraries]
+
+macos.editor.x86_64 = "./bin/macos/editor/godot-dojo.macos.editor.x86_64.dylib"
+macos.debug.x86_64 = "./bin/macos/debug/godot-dojo.macos.debug.x86_64.dylib"
+macos.release.x86_64 = "./bin/macos/release/godot-dojo.macos.release.x86_64.dylib"
+
+macos.editor.arm64 = "./bin/macos/editor/godot-dojo.macos.editor.arm64.dylib"
+macos.debug.arm64 = "./bin/macos/debug/godot-dojo.macos.debug.arm64.dylib"
+macos.release.arm64 = "./bin/macos/release/godot-dojo.macos.release.arm64.dylib"
+
+ios.debug = "./bin/ios/debug/godot-dojo.xcframework"
+ios.release = "./bin/ios/release/godot-dojo.xcframework"
+
+windows.editor.x86_64 = "./bin/windows/editor/godot-dojo.windows.editor.x86_64.dll"
+windows.debug.x86_64 = "./bin/windows/debug/godot-dojo.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "./bin/windows/release/godot-dojo.windows.template_release.x86_64.dll"
+
+linux.editor.x86_64 = "./bin/linux/editor/godot-dojo.linux.editor.x86_64.so"
+linux.debug.x86_64 = "./bin/linux/debug/godot-dojo.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "./bin/linux/release/godot-dojo.linux.template_release.x86_64.so"
+
+android.debug.arm64 = "./bin/android/debug/libgodot-dojo.android.template_debug.arm64.so"
+android.release.arm64 = "./bin/android/release/libgodot-dojo.android.template_release.arm64.so"
+
+web.debug.wasm32 = "./bin/web/debug/godot-dojo.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "./bin/web/release/godot-dojo.web.template_release.wasm32.wasm"
+
+[dependencies]
+
+ios.debug = {
+    "./bin/ios/debug/godot-dojo.xcframework" : "",
+}
+ios.release = {
+    "./bin/ios/release/godot-dojo.xcframework" : "",
+}
+
+[icons]
+
+ToriiClient = "./assets/icons/torii_color.svg"
+Account = "./assets/icons/torii_color.svg"
+DojoSessionAccount = "./assets/icons/controller_color.svg"
+DojoController = "./assets/icons/controller_color.svg"
