@@ -19,6 +19,10 @@
   <strong>🏆 Built for Dojo Game Jam VIII — March 6-8, 2026</strong>
 </p>
 
+<p align="center">
+  <a href="https://x.com/shariqshkt/status/2030780305104384343"><strong>Watch the Trailer</strong></a>
+</p>
+
 ---
 
 ## 🎮 What is Prophecy?
