@@ -1,96 +1,90 @@
 use starknet::ContractAddress;
 
-// Event types that can appear on each floor
-#[derive(Serde, Copy, Drop, Introspect, PartialEq, Debug, DojoStore, Default)]
-pub enum EventType {
-    #[default]
-    Monster,
-    Trap,
-    Treasure,
-    Heal,
-}
-
-// Player state - the core entity
+// A prediction market with YES/NO outcome
 #[derive(Copy, Drop, Serde, Debug)]
 #[dojo::model]
-pub struct Player {
+pub struct Market {
+    #[key]
+    pub market_id: u32,
+    pub yes_odds: u32,         // basis points: 280 = 2.8x payout
+    pub no_odds: u32,
+    pub is_resolved: bool,
+    pub outcome: bool,         // true = YES won
+    pub total_yes_amount: u32, // total wagered on YES
+    pub total_no_amount: u32,  // total wagered on NO
+}
+
+// A player's position on a specific market
+#[derive(Copy, Drop, Serde, Debug)]
+#[dojo::model]
+pub struct Position {
+    #[key]
+    pub player: ContractAddress,
+    #[key]
+    pub market_id: u32,
+    pub is_yes: bool,
+    pub amount: u32,
+    pub is_settled: bool,
+    pub payout: u32,
+}
+
+// Trader state (virtual balance + stats)
+#[derive(Copy, Drop, Serde, Debug)]
+#[dojo::model]
+pub struct Trader {
     #[key]
     pub address: ContractAddress,
-    pub hp: u32,
-    pub max_hp: u32,
-    pub floor: u32,
-    pub gold: u32,
-    pub prediction_streak: u32,
-    pub best_streak: u32,
-    pub total_predictions: u32,
+    pub balance: u32,          // starts at 10000
+    pub total_wagered: u32,
+    pub total_won: u32,
+    pub total_lost: u32,
+    pub markets_played: u32,
     pub correct_predictions: u32,
-    pub is_alive: bool,
-    pub next_event_seed: felt252,  // pre-committed seed for next floor's event
-    pub clue_type: u8,            // 0=danger, 1=fortune
-    pub clue_detail: u8,          // 0=none, 1=notMonster, 2=notTrap, 3=notTreasure, 4=notHeal
-    pub streak_tier: u8,          // 0=Normal, 1=Hot, 2=Blazing, 3=Prophetic
+    pub streak: u32,
+    pub best_streak: u32,
 }
 
-// Record of each floor encounter
+// Player relics / power-ups inventory
 #[derive(Copy, Drop, Serde, Debug)]
 #[dojo::model]
-pub struct GameRound {
+pub struct Relics {
     #[key]
     pub address: ContractAddress,
-    #[key]
-    pub floor: u32,
-    pub event_type: EventType,
-    pub player_prediction: EventType,
-    pub damage_dealt: u32,
-    pub gold_earned: u32,
-    pub hp_healed: u32,
-    pub was_correct: bool,
-    pub wager_amount: u32,
-    pub is_boss: bool,
+    pub leverage_tokens: u32,  // 3x payout multiplier
+    pub stop_loss: u32,        // prevent loss (refund wager)
+    pub insider_info: u32,     // reveal correct answer
 }
 
-// Persistent leaderboard across runs
+// Global World Boss — shared prediction market all players bet on
+// Uses market_id=0 as the singleton key
+#[derive(Copy, Drop, Serde, Debug)]
+#[dojo::model]
+pub struct WorldBoss {
+    #[key]
+    pub boss_id: u32,              // always 0 (singleton)
+    pub title_id: u32,             // which boss question is active
+    pub total_yes: u32,            // total players who bet YES
+    pub total_no: u32,             // total players who bet NO
+    pub total_yes_amount: u32,     // total $ wagered on YES
+    pub total_no_amount: u32,      // total $ wagered on NO
+    pub is_resolved: bool,
+    pub outcome: bool,
+    // Last 5 bettors (ring buffer — newest at slot (total_yes+total_no-1) % 5)
+    pub recent_0: ContractAddress,
+    pub recent_1: ContractAddress,
+    pub recent_2: ContractAddress,
+    pub recent_3: ContractAddress,
+    pub recent_4: ContractAddress,
+}
+
+// Persistent leaderboard across all trading
 #[derive(Copy, Drop, Serde, Debug)]
 #[dojo::model]
 pub struct LeaderboardEntry {
     #[key]
     pub address: ContractAddress,
-    pub high_score: u32,
-    pub highest_floor: u32,
+    pub high_score: u32,       // best balance ever achieved
+    pub highest_floor: u32,    // kept for compat, repurposed as markets_played
     pub best_streak: u32,
-    pub total_runs: u32,
-}
-
-// Convert u8 to EventType
-pub fn event_type_from_u8(val: u8) -> EventType {
-    if val == 0 {
-        EventType::Monster
-    } else if val == 1 {
-        EventType::Trap
-    } else if val == 2 {
-        EventType::Treasure
-    } else {
-        EventType::Heal
-    }
-}
-
-// Convert EventType to u8 for comparison
-pub fn event_type_to_u8(event: EventType) -> u8 {
-    match event {
-        EventType::Monster => 0,
-        EventType::Trap => 1,
-        EventType::Treasure => 2,
-        EventType::Heal => 3,
-    }
-}
-
-impl EventTypeIntoFelt252 of Into<EventType, felt252> {
-    fn into(self: EventType) -> felt252 {
-        match self {
-            EventType::Monster => 0,
-            EventType::Trap => 1,
-            EventType::Treasure => 2,
-            EventType::Heal => 3,
-        }
-    }
+    pub total_runs: u32,       // kept for compat, repurposed as total settled
 }

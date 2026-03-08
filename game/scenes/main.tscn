@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_game.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="2"]
@@ -8,27 +8,16 @@
 [sub_resource type="ShaderMaterial" id="bg_mat"]
 shader = ExtResource("4")
 
-[sub_resource type="StyleBoxFlat" id="panel_transparent"]
+[sub_resource type="StyleBoxFlat" id="panel_style"]
 bg_color = Color(0.06, 0.06, 0.1, 0.95)
 corner_radius_top_left = 0
 corner_radius_top_right = 0
 corner_radius_bottom_right = 0
 corner_radius_bottom_left = 0
-content_margin_left = 40.0
-content_margin_top = 0.0
-content_margin_right = 40.0
-content_margin_bottom = 0.0
-
-[sub_resource type="StyleBoxFlat" id="gameover_panel_style"]
-bg_color = Color(0.05, 0.05, 0.08, 1.0)
-corner_radius_top_left = 0
-corner_radius_top_right = 0
-corner_radius_bottom_right = 0
-corner_radius_bottom_left = 0
-content_margin_left = 40.0
-content_margin_top = 0.0
-content_margin_right = 40.0
-content_margin_bottom = 0.0
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
 
 [sub_resource type="StyleBoxFlat" id="card_style"]
 bg_color = Color(0.1, 0.1, 0.15, 0.95)
@@ -42,8 +31,6 @@ content_margin_left = 24.0
 content_margin_top = 20.0
 content_margin_right = 24.0
 content_margin_bottom = 20.0
-shadow_color = Color(0.0, 0.0, 0.1, 0.2)
-shadow_size = 8
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -85,7 +72,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_styles/panel = SubResource("panel_transparent")
+theme_override_styles/panel = SubResource("panel_style")
 
 [node name="StartVBox" type="VBoxContainer" parent="StartPanel"]
 layout_mode = 2
@@ -114,8 +101,8 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
 theme_override_font_sizes/font_size = 15
-text = "Predict the market. Survive the volatility.
-Every trade is an on-chain transaction."
+text = "Prediction Market Roguelite
+Survive the markets. Every trade is on-chain."
 horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="StartPanel/StartVBox"]
@@ -128,7 +115,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(260, 52)
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
-text = "ENTER THE MARKET"
+text = "START TRADING"
 
 [node name="StartStatus" type="Label" parent="StartPanel/StartVBox"]
 unique_name_in_owner = true
@@ -149,348 +136,676 @@ theme_override_font_sizes/font_size = 11
 text = "Dojo  |  Starknet  |  Cartridge  |  Godot"
 horizontal_alignment = 1
 
-[node name="GamePanel" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 12.0
-offset_right = -20.0
-offset_bottom = -12.0
-visible = false
-theme_override_constants/separation = 10
-
-[node name="TopBar" type="HBoxContainer" parent="GamePanel"]
-layout_mode = 2
-
-[node name="FloorLabel" type="Label" parent="GamePanel/TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
-theme_override_font_sizes/font_size = 20
-text = "Round 0"
-
-[node name="TierLabel" type="Label" parent="GamePanel/TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 14
-text = ""
-horizontal_alignment = 1
-visible = false
-
-[node name="AccLabel" type="Label" parent="GamePanel/TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 14
-text = "-"
-horizontal_alignment = 2
-
-[node name="HPRow" type="HBoxContainer" parent="GamePanel"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="HPBar" type="ProgressBar" parent="GamePanel/HPRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 20)
-max_value = 100.0
-value = 100.0
-show_percentage = false
-
-[node name="HPLabel" type="Label" parent="GamePanel/HPRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(80, 0)
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 13
-text = "100/100"
-horizontal_alignment = 2
-
-[node name="StatsRow" type="HBoxContainer" parent="GamePanel"]
-layout_mode = 2
-
-[node name="GoldLabel" type="Label" parent="GamePanel/StatsRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
-theme_override_font_sizes/font_size = 14
-text = "$0"
-
-[node name="StreakLabel" type="Label" parent="GamePanel/StatsRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 14
-text = "0x"
-horizontal_alignment = 2
-
-[node name="Spacer1" type="Control" parent="GamePanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="CenterCard" type="PanelContainer" parent="GamePanel"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("card_style")
-
-[node name="CardVBox" type="VBoxContainer" parent="GamePanel/CenterCard"]
-layout_mode = 2
-alignment = 1
-theme_override_constants/separation = 8
-
-[node name="CenterTitle" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 14
-text = "ROUND 1"
-horizontal_alignment = 1
-
-[node name="CenterIcon" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 56
-text = "$"
-horizontal_alignment = 1
-
-[node name="ClueLabel" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
-theme_override_font_sizes/font_size = 15
-text = ""
-horizontal_alignment = 1
-
-[node name="ClueDetail" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
-theme_override_font_sizes/font_size = 13
-text = ""
-horizontal_alignment = 1
-
-[node name="CenterResult" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.78, 0.86, 1)
-theme_override_font_sizes/font_size = 20
-text = "What's the next move?"
-horizontal_alignment = 1
-
-[node name="CenterDetail" type="Label" parent="GamePanel/CenterCard/CardVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
-theme_override_font_sizes/font_size = 14
-text = ""
-horizontal_alignment = 1
-
-[node name="HistoryLabel" type="RichTextLabel" parent="GamePanel"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(0, 22)
-bbcode_enabled = true
-fit_content = true
-scroll_active = false
-text = ""
-
-[node name="Spacer2" type="Control" parent="GamePanel"]
-layout_mode = 2
-size_flags_vertical = 3
-custom_minimum_size = Vector2(0, 4)
-
-[node name="WagerRow" type="HBoxContainer" parent="GamePanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 8
-visible = false
-
-[node name="BtnSafe" type="Button" parent="GamePanel/WagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 36)
-theme_override_font_sizes/font_size = 13
-text = "SAFE"
-
-[node name="BtnRisky" type="Button" parent="GamePanel/WagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 36)
-theme_override_font_sizes/font_size = 13
-text = "RISKY"
-
-[node name="BtnAllIn" type="Button" parent="GamePanel/WagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 36)
-theme_override_font_sizes/font_size = 13
-text = "ALL IN"
-
-[node name="WagerLabel" type="Label" parent="GamePanel/WagerRow"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(100, 0)
-theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
-theme_override_font_sizes/font_size = 13
-text = "Position: $0"
-horizontal_alignment = 2
-
-[node name="PredGrid" type="GridContainer" parent="GamePanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
-columns = 2
-
-[node name="BtnMonster" type="Button" parent="GamePanel/PredGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-theme_override_font_sizes/font_size = 16
-text = "CRASH"
-
-[node name="BtnTrap" type="Button" parent="GamePanel/PredGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-theme_override_font_sizes/font_size = 16
-text = "RUG"
-
-[node name="BtnTreasure" type="Button" parent="GamePanel/PredGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-theme_override_font_sizes/font_size = 16
-text = "MOON"
-
-[node name="BtnHeal" type="Button" parent="GamePanel/PredGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 56)
-theme_override_font_sizes/font_size = 16
-text = "RALLY"
-
-[node name="StatusBar" type="HBoxContainer" parent="GamePanel"]
-layout_mode = 2
-
-[node name="ChainStatus" type="Label" parent="GamePanel/StatusBar"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 0.5)
-theme_override_font_sizes/font_size = 11
-text = ""
-
-[node name="TxLabel" type="Label" parent="GamePanel/StatusBar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 0.5)
-theme_override_font_sizes/font_size = 11
-text = ""
-horizontal_alignment = 2
-
-[node name="GameOverPanel" type="PanelContainer" parent="."]
+[node name="DashboardPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 visible = false
-theme_override_styles/panel = SubResource("gameover_panel_style")
+theme_override_styles/panel = SubResource("panel_style")
 
-[node name="GOVBox" type="VBoxContainer" parent="GameOverPanel"]
+[node name="DashVBox" type="VBoxContainer" parent="DashboardPanel"]
 layout_mode = 2
 alignment = 1
 theme_override_constants/separation = 14
 
-[node name="Spacer" type="Control" parent="GameOverPanel/GOVBox"]
+[node name="Spacer1" type="Control" parent="DashboardPanel/DashVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="GOTitle" type="Label" parent="GameOverPanel/GOVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.94, 0.27, 0.27, 1)
-theme_override_font_sizes/font_size = 36
-text = "LIQUIDATED"
-horizontal_alignment = 1
-
-[node name="Sep1" type="Control" parent="GameOverPanel/GOVBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
-
-[node name="GOScore" type="Label" parent="GameOverPanel/GOVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
-theme_override_font_sizes/font_size = 48
-text = "0"
-horizontal_alignment = 1
-
-[node name="ScoreLabel" type="Label" parent="GameOverPanel/GOVBox"]
+[node name="DashTitle" type="Label" parent="DashboardPanel/DashVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
 theme_override_font_sizes/font_size = 14
-text = "FINAL PnL"
+text = "YOUR BALANCE"
 horizontal_alignment = 1
 
-[node name="GOStats" type="Label" parent="GameOverPanel/GOVBox"]
+[node name="BalanceLabel" type="Label" parent="DashboardPanel/DashVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 48
+text = "$10,000"
+horizontal_alignment = 1
+
+[node name="PnlLabel" type="Label" parent="DashboardPanel/DashVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
 theme_override_font_sizes/font_size = 14
 text = ""
 horizontal_alignment = 1
 
-[node name="GONewRecord" type="Label" parent="GameOverPanel/GOVBox"]
+[node name="Sep1" type="Control" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+
+[node name="StatsRow" type="HBoxContainer" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="StatMarkets" type="Label" parent="DashboardPanel/DashVBox/StatsRow"]
 unique_name_in_owner = true
 layout_mode = 2
-visible = false
-theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 13
+text = "0 Markets"
+
+[node name="StatAccuracy" type="Label" parent="DashboardPanel/DashVBox/StatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 13
+text = "0% Accuracy"
+
+[node name="StatStreak" type="Label" parent="DashboardPanel/DashVBox/StatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 13
+text = "0x Streak"
+
+[node name="Sep2" type="Control" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="BtnMarkets" type="Button" parent="DashboardPanel/DashVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(280, 52)
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 18
-text = "NEW HIGH SCORE!"
+text = "START RUN"
+
+[node name="NavRow" type="HBoxContainer" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="BtnPortfolio" type="Button" parent="DashboardPanel/DashVBox/NavRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(140, 44)
+theme_override_font_sizes/font_size = 14
+text = "MY PORTFOLIO"
+
+[node name="BtnDashLB" type="Button" parent="DashboardPanel/DashVBox/NavRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(140, 44)
+theme_override_font_sizes/font_size = 14
+text = "LEADERBOARD"
+
+[node name="Spacer2" type="Control" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DashStatus" type="HBoxContainer" parent="DashboardPanel/DashVBox"]
+layout_mode = 2
+
+[node name="ChainStatus" type="Label" parent="DashboardPanel/DashVBox/DashStatus"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 0.5)
+theme_override_font_sizes/font_size = 11
+text = ""
+
+[node name="TxLabel" type="Label" parent="DashboardPanel/DashVBox/DashStatus"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 0.5)
+theme_override_font_sizes/font_size = 11
+text = ""
+horizontal_alignment = 2
+
+[node name="SwipePanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="SwipeVBox" type="VBoxContainer" parent="SwipePanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SwipeHeader" type="HBoxContainer" parent="SwipePanel/SwipeVBox"]
+layout_mode = 2
+
+[node name="BtnSwipeBack" type="Button" parent="SwipePanel/SwipeVBox/SwipeHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(70, 36)
+theme_override_font_sizes/font_size = 13
+text = "BACK"
+
+[node name="SwipeProgress" type="Label" parent="SwipePanel/SwipeVBox/SwipeHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 14
+text = "1 / 10"
 horizontal_alignment = 1
 
-[node name="Sep2" type="Control" parent="GameOverPanel/GOVBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 4)
-
-[node name="GOHighScore" type="Label" parent="GameOverPanel/GOVBox"]
+[node name="TimerLabel" type="Label" parent="SwipePanel/SwipeVBox/SwipeHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 16
+text = "0:30"
+horizontal_alignment = 2
+custom_minimum_size = Vector2(50, 0)
+
+[node name="SwipeBalance" type="Label" parent="SwipePanel/SwipeVBox/SwipeHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "$10,000"
+horizontal_alignment = 2
+
+[node name="RoundInfo" type="Label" parent="SwipePanel/SwipeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 13
+text = "ROUND 1"
+horizontal_alignment = 1
+
+[node name="CardArea" type="Control" parent="SwipePanel/SwipeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+clip_contents = false
+
+[node name="PeekCard2" type="PanelContainer" parent="SwipePanel/SwipeVBox/CardArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.9, 0.9)
+modulate = Color(1, 1, 1, 0.3)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("card_style")
+
+[node name="Pad2" type="Control" parent="SwipePanel/SwipeVBox/CardArea/PeekCard2"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+
+[node name="PeekCard1" type="PanelContainer" parent="SwipePanel/SwipeVBox/CardArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.95, 0.95)
+modulate = Color(1, 1, 1, 0.6)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("card_style")
+
+[node name="Pad1" type="Control" parent="SwipePanel/SwipeVBox/CardArea/PeekCard1"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 120)
+
+[node name="CardContainer" type="Control" parent="SwipePanel/SwipeVBox/CardArea"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_right = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="CardPanel" type="PanelContainer" parent="SwipePanel/SwipeVBox/CardArea/CardContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("card_style")
+
+[node name="CardVBox" type="VBoxContainer" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel"]
+layout_mode = 2
+alignment = 1
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="CardCategory" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 13
+text = "SCIENCE"
+horizontal_alignment = 1
+
+[node name="CardQuestion" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
+theme_override_font_sizes/font_size = 20
+text = "Bananas are radioactive"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CardStatus" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
 theme_override_font_sizes/font_size = 13
 text = ""
 horizontal_alignment = 1
 
-[node name="Sep3" type="Control" parent="GameOverPanel/GOVBox"]
+[node name="CardOddsRow" type="HBoxContainer" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+alignment = 1
+mouse_filter = 2
+theme_override_constants/separation = 40
 
-[node name="BtnRetry" type="Button" parent="GameOverPanel/GOVBox"]
+[node name="CardYesOdds" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox/CardOddsRow"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(220, 48)
-size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 17
-text = "TRADE AGAIN"
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 24
+text = "YES 1.5x"
 
-[node name="Spacer2" type="Control" parent="GameOverPanel/GOVBox"]
+[node name="CardNoOdds" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer/CardPanel/CardVBox/CardOddsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.94, 0.27, 0.27, 1)
+theme_override_font_sizes/font_size = 24
+text = "NO 2.6x"
+
+[node name="YesStamp" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -40.0
+offset_right = 80.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.26
+modulate = Color(0.06, 0.73, 0.51, 0)
+theme_override_colors/font_color = Color(0.06, 0.73, 0.51, 1)
+theme_override_font_sizes/font_size = 48
+text = "YES"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="NoStamp" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -40.0
+offset_right = 80.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.26
+modulate = Color(0.94, 0.27, 0.27, 0)
+theme_override_colors/font_color = Color(0.94, 0.27, 0.27, 1)
+theme_override_font_sizes/font_size = 48
+text = "NO"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="SkipStamp" type="Label" parent="SwipePanel/SwipeVBox/CardArea/CardContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -80.0
+offset_top = -40.0
+offset_right = 80.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+modulate = Color(0.55, 0.55, 0.63, 0)
+theme_override_colors/font_color = Color(0.55, 0.55, 0.63, 1)
+theme_override_font_sizes/font_size = 48
+text = "SKIP"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="SwipeHint" type="Label" parent="SwipePanel/SwipeVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 0.6)
+theme_override_font_sizes/font_size = 11
+text = "swipe right = YES    left = NO    up = SKIP"
+horizontal_alignment = 1
+
+[node name="WagerBar" type="HBoxContainer" parent="SwipePanel/SwipeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="BtnW100" type="Button" parent="SwipePanel/SwipeVBox/WagerBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(70, 36)
+theme_override_font_sizes/font_size = 13
+text = "$100"
+
+[node name="BtnW500" type="Button" parent="SwipePanel/SwipeVBox/WagerBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(70, 36)
+theme_override_font_sizes/font_size = 13
+text = "$500"
+
+[node name="BtnW1K" type="Button" parent="SwipePanel/SwipeVBox/WagerBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(70, 36)
+theme_override_font_sizes/font_size = 13
+text = "$1K"
+
+[node name="BtnWAll" type="Button" parent="SwipePanel/SwipeVBox/WagerBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(70, 36)
+theme_override_font_sizes/font_size = 13
+text = "ALL IN"
+
+[node name="WagerLabel" type="Label" parent="SwipePanel/SwipeVBox/WagerBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 14
+text = "Wager: $500"
+
+[node name="AllDoneLabel" type="Label" parent="SwipePanel/SwipeVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 18
+text = "All markets reviewed!"
+horizontal_alignment = 1
+
+[node name="PortfolioPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="PortVBox" type="VBoxContainer" parent="PortfolioPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PortHeader" type="HBoxContainer" parent="PortfolioPanel/PortVBox"]
+layout_mode = 2
+
+[node name="PortTitle" type="Label" parent="PortfolioPanel/PortVBox/PortHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.39, 0.4, 0.95, 1)
+theme_override_font_sizes/font_size = 22
+text = "MY PORTFOLIO"
+
+[node name="BtnPortBack" type="Button" parent="PortfolioPanel/PortVBox/PortHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 36)
+theme_override_font_sizes/font_size = 13
+text = "BACK"
+
+[node name="PortScroll" type="ScrollContainer" parent="PortfolioPanel/PortVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PortList" type="VBoxContainer" parent="PortfolioPanel/PortVBox/PortScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LeaderboardPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="LBVBox" type="VBoxContainer" parent="LeaderboardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LBHeader" type="HBoxContainer" parent="LeaderboardPanel/LBVBox"]
+layout_mode = 2
+
+[node name="LBTitle" type="Label" parent="LeaderboardPanel/LBVBox/LBHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 22
+text = "LEADERBOARD"
+
+[node name="BtnLBBack" type="Button" parent="LeaderboardPanel/LBVBox/LBHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 36)
+theme_override_font_sizes/font_size = 13
+text = "BACK"
+
+[node name="LBColHeader" type="HBoxContainer" parent="LeaderboardPanel/LBVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HRank" type="Label" parent="LeaderboardPanel/LBVBox/LBColHeader"]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "RANK"
+
+[node name="HTrader" type="Label" parent="LeaderboardPanel/LBVBox/LBColHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "TRADER"
+
+[node name="HBalance" type="Label" parent="LeaderboardPanel/LBVBox/LBColHeader"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "BALANCE"
+horizontal_alignment = 2
+
+[node name="HPnL" type="Label" parent="LeaderboardPanel/LBVBox/LBColHeader"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "P&L"
+horizontal_alignment = 2
+
+[node name="HAcc" type="Label" parent="LeaderboardPanel/LBVBox/LBColHeader"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 0)
+theme_override_colors/font_color = Color(0.5, 0.48, 0.58, 1)
+theme_override_font_sizes/font_size = 12
+text = "ACC"
+horizontal_alignment = 2
+
+[node name="LBScroll" type="ScrollContainer" parent="LeaderboardPanel/LBVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LBEntries" type="VBoxContainer" parent="LeaderboardPanel/LBVBox/LBScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="LiquidatedPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="LiqVBox" type="VBoxContainer" parent="LiquidatedPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="Spacer1" type="Control" parent="LiquidatedPanel/LiqVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LiqIcon" type="Label" parent="LiquidatedPanel/LiqVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.27, 0.27, 1)
+theme_override_font_sizes/font_size = 42
+text = "LIQUIDATED"
+horizontal_alignment = 1
+
+[node name="LiqSubtitle" type="Label" parent="LiquidatedPanel/LiqVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 15
+text = "Your capital hit $0. Game over."
+horizontal_alignment = 1
+
+[node name="LiqStats" type="Label" parent="LiquidatedPanel/LiqVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+horizontal_alignment = 1
+
+[node name="Sep" type="Control" parent="LiquidatedPanel/LiqVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="BtnNewRun" type="Button" parent="LiquidatedPanel/LiqVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(220, 52)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "NEW RUN"
+
+[node name="Spacer2" type="Control" parent="LiquidatedPanel/LiqVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RoundSummaryPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="RndVBox" type="VBoxContainer" parent="RoundSummaryPanel"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="Spacer1" type="Control" parent="RoundSummaryPanel/RndVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RoundTitle" type="Label" parent="RoundSummaryPanel/RndVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 28
+text = "ROUND 1 COMPLETE"
+horizontal_alignment = 1
+
+[node name="RoundPnl" type="Label" parent="RoundSummaryPanel/RndVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 22
+text = "+$1,500"
+horizontal_alignment = 1
+
+[node name="RoundStats" type="Label" parent="RoundSummaryPanel/RndVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.58, 0.68, 1)
+theme_override_font_sizes/font_size = 14
+text = "7/10 correct · 3x streak · $11,500 balance"
+horizontal_alignment = 1
+
+[node name="Sep" type="Control" parent="RoundSummaryPanel/RndVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 16)
+
+[node name="BtnNextRound" type="Button" parent="RoundSummaryPanel/RndVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(220, 52)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "NEXT ROUND"
+
+[node name="BtnRndPortfolio" type="Button" parent="RoundSummaryPanel/RndVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(180, 44)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+text = "VIEW PORTFOLIO"
+
+[node name="Spacer2" type="Control" parent="RoundSummaryPanel/RndVBox"]
 layout_mode = 2
 size_flags_vertical = 3

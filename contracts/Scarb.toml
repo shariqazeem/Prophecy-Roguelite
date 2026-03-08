@@ -1,6 +1,6 @@
 [package]
 name = "prophecy_roguelite"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024_07"
 
 [cairo]
@@ -8,8 +8,9 @@ sierra-replace-ids = true
 
 [scripts]
 migrate = "sozo build && sozo migrate"
-spawn = "sozo execute prophecy_roguelite-actions spawn --wait"
-predict = "sozo execute prophecy_roguelite-actions predict_and_advance -c 0 --wait"
+create_trader = "sozo execute prophecy_roguelite-actions create_trader --wait"
+create_market = "sozo execute prophecy_roguelite-actions create_market --wait"
+place_prediction = "sozo execute prophecy_roguelite-actions place_prediction --wait"
 
 [dependencies]
 dojo = "1.8.0"

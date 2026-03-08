@@ -27,7 +27,7 @@ dependencies = [
 
 [[package]]
 name = "prophecy_roguelite"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "dojo",
  "dojo_cairo_test",

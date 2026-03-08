@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "skills": {
+    "controller-backend": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "72bee75e920b2f83f44986a2f2a3e7a8b96816f51888ac45a834a6db4f281a58"
+    },
+    "controller-native": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "da8425c4690e80657fe1327962bf0552978fef8342e7869b4ed63f1f145dace9"
+    },
+    "controller-presets": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "d1e1ee7026a5cb9106ad7878b6e13f20886099edc45ab5ae09c9927bb16e4317"
+    },
+    "controller-react": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "dfd836fe0d36fabd9b6693f1fc798f8e1666a8f53ca099e42fc024a44bca4a57"
+    },
+    "controller-sessions": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "6d3131e6a01f3a278998ec6a15e834dd90c213e02721941ab173b4314ff72dd4"
+    },
+    "controller-setup": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "9cfcd4be5838aad69c932ce073ad8baa2d11cd04b54ea160f5e43383de8b6f21"
+    },
+    "controller-signers": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "e930acba57a9f3e91032fd3fc14a34096dda2e84b7c2cec297a0a7f92a67257b"
+    },
+    "create-a-plan": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "ae83a52da13a7170d3fd135dab6c9b9062e4910a63999bbdf88da8ad52144dfb"
+    },
+    "create-pr": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "cd692b415d3b71996f4ce42255bf97764d0b466c9dbc4b83fbea3c51ab47cf70"
+    },
+    "dojo-client": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "e1e0aca472a2c766d263608dd134090aea6a20c142f580eb8fb58c6f4ce641f0"
+    },
+    "dojo-config": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "81f724fea662d5cd067e9b312823924c36fcd78db417f2e899407c44cf30fadf"
+    },
+    "dojo-deploy": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "64a4914ca51508231eb8d54392b8bdec36c1be07b464757c342ef4af01698409"
+    },
+    "dojo-indexer": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "b33c1c982011b0f0a4ea955b4f32111f94cd45f90006990f47f624de1a143206"
+    },
+    "dojo-init": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "68a1c0ed76ab8d6323688b655bcd24fb2549f9f22f5dba701eba6956011026d0"
+    },
+    "dojo-migrate": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "6e7be3150a5d1325ca66b61484245967eaec5ad0fa9123fffe77aaefd1d5fc57"
+    },
+    "dojo-model": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "385ea93cc42e27c0d431f5ed485b590f5c2e87bdd6a5de9402e9238ed1665b6f"
+    },
+    "dojo-review": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "50b13bb70e8eb8d4097e5787043faaa2bf6a3bab4ae168180f43916318ac3642"
+    },
+    "dojo-system": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "738709059c324fe19d370de88a5188cd52309bd08cbdae02888193a5e3321635"
+    },
+    "dojo-test": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "fbd363ed6ee2937f20bc4205d4b0984cbf3514b52149df184b819a4cc187ff0f"
+    },
+    "dojo-token": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "de851ec3a71bce280f39c5d0097975859c1335bd38c6006c851bc09c38a6f7d1"
+    },
+    "dojo-world": {
+      "source": "dojoengine/book",
+      "sourceType": "github",
+      "computedHash": "bb3ebcbd4622e5632a5406cde84a2e5235a1a2dea9614299febfd14a6c21cddf"
+    },
+    "slot-deploy": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "293034cc2a396eb6b2e140a9b101ca69c3f35b4d1cb4dec46b5d10c331f7207a"
+    },
+    "slot-paymaster": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "88326cdee195b1510198d6334afa204e7620c20a3212abce9f97e58c1e3af338"
+    },
+    "slot-rpc": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "f4b25ca209b280d8bd8f763e41d6081ecabd267ce0e642775ac0416de71e62d7"
+    },
+    "slot-scale": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "56acf50e0c09424d506ea3dd8589ae9786ba50e616324c4e541b83c112ade709"
+    },
+    "slot-teams": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "1579cba2fde909aa10c559ae9f30724637aabc14458fdcc0c82eb760194ef936"
+    },
+    "slot-vrng": {
+      "source": "cartridge-gg/docs",
+      "sourceType": "github",
+      "computedHash": "c410761cbf21e33a1c636715750c7a786b0de085c29ab619160e44a0b2ab2ac9"
+    }
+  }
+}

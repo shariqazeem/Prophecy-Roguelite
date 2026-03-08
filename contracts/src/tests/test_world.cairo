@@ -1,12 +1,15 @@
 #[cfg(test)]
 mod tests {
-    use dojo::model::{ModelStorage, ModelStorageTest};
+    use dojo::model::ModelStorage;
     use dojo::world::{WorldStorageTrait, world};
     use dojo_cairo_test::{
         ContractDef, ContractDefTrait, NamespaceDef, TestResource, WorldStorageTestTrait,
         spawn_test_world,
     };
-    use prophecy_roguelite::models::{Player, GameRound, m_Player, m_GameRound, m_LeaderboardEntry};
+    use prophecy_roguelite::models::{
+        Market, Position, Trader, LeaderboardEntry, m_Market, m_Position, m_Trader,
+        m_LeaderboardEntry,
+    };
     use prophecy_roguelite::systems::actions::{IActionsDispatcher, IActionsDispatcherTrait, actions};
     use starknet::ContractAddress;
 
@@ -14,12 +17,14 @@ mod tests {
         NamespaceDef {
             namespace: "prophecy_roguelite",
             resources: [
-                TestResource::Model(m_Player::TEST_CLASS_HASH),
-                TestResource::Model(m_GameRound::TEST_CLASS_HASH),
+                TestResource::Model(m_Market::TEST_CLASS_HASH),
+                TestResource::Model(m_Position::TEST_CLASS_HASH),
+                TestResource::Model(m_Trader::TEST_CLASS_HASH),
                 TestResource::Model(m_LeaderboardEntry::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_PlayerSpawned::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_FloorResolved::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_PlayerDied::TEST_CLASS_HASH),
+                TestResource::Event(actions::e_TraderCreated::TEST_CLASS_HASH),
+                TestResource::Event(actions::e_PredictionPlaced::TEST_CLASS_HASH),
+                TestResource::Event(actions::e_MarketResolved::TEST_CLASS_HASH),
+                TestResource::Event(actions::e_PositionSettled::TEST_CLASS_HASH),
                 TestResource::Contract(actions::TEST_CLASS_HASH),
             ]
                 .span(),
@@ -34,290 +39,207 @@ mod tests {
             .span()
     }
 
-    // Helper: get the correct prediction for a player's current seed
-    fn get_correct_prediction(world: @dojo::world::WorldStorage, caller: ContractAddress) -> u8 {
-        let player: Player = world.read_model(caller);
-        let seed_u256: u256 = player.next_event_seed.into();
-        (seed_u256 % 4).try_into().unwrap()
-    }
-
-    #[test]
-    fn test_spawn_creates_player() {
+    fn setup() -> (dojo::world::WorldStorage, IActionsDispatcher, ContractAddress) {
         let caller: ContractAddress = 0.try_into().unwrap();
         let ndef = namespace_def();
         let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
         world.sync_perms_and_inits(contract_defs());
-
         let (contract_address, _) = world.dns(@"actions").unwrap();
         let actions_system = IActionsDispatcher { contract_address };
-
-        actions_system.spawn();
-
-        let player: Player = world.read_model(caller);
-
-        assert(player.hp == 100, 'hp should be 100');
-        assert(player.max_hp == 100, 'max_hp should be 100');
-        assert(player.floor == 0, 'floor should be 0');
-        assert(player.gold == 0, 'gold should be 0');
-        assert(player.is_alive, 'should be alive');
-        assert(player.prediction_streak == 0, 'streak should be 0');
-        assert(player.streak_tier == 0, 'tier should be 0');
-        assert(player.clue_type <= 1, 'clue_type must be 0 or 1');
-        assert(player.clue_detail <= 4, 'clue_detail must be 0-4');
+        (world, actions_system, caller)
     }
 
     #[test]
-    fn test_predict_advances_floor() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_create_trader() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
 
-        actions_system.spawn();
-        actions_system.predict_and_advance(0, 0); // Predict Monster, no wager
-
-        let player: Player = world.read_model(caller);
-        assert(player.floor == 1, 'floor should be 1');
-        assert(player.total_predictions == 1, 'total predictions should be 1');
+        let trader: Trader = world.read_model(caller);
+        assert(trader.balance == 10000, 'balance should be 10000');
+        assert(trader.total_wagered == 0, 'wagered should be 0');
+        assert(trader.total_won == 0, 'won should be 0');
+        assert(trader.total_lost == 0, 'lost should be 0');
+        assert(trader.markets_played == 0, 'played should be 0');
+        assert(trader.correct_predictions == 0, 'correct should be 0');
+        assert(trader.streak == 0, 'streak should be 0');
+        assert(trader.best_streak == 0, 'best_streak should be 0');
     }
 
     #[test]
-    fn test_multiple_floors() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_create_market() {
+        let (world, actions, _) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_market(1, 280, 140);
 
-        actions_system.spawn();
-
-        // Play 5 floors
-        actions_system.predict_and_advance(0, 0);
-        actions_system.predict_and_advance(1, 0);
-        actions_system.predict_and_advance(2, 0);
-        actions_system.predict_and_advance(3, 0);
-        actions_system.predict_and_advance(0, 0);
-
-        let player: Player = world.read_model(caller);
-        assert(player.floor == 5, 'floor should be 5');
-        assert(player.total_predictions == 5, 'total predictions should be 5');
+        let market: Market = world.read_model(1);
+        assert(market.yes_odds == 280, 'yes_odds should be 280');
+        assert(market.no_odds == 140, 'no_odds should be 140');
+        assert(!market.is_resolved, 'should not be resolved');
+        assert(!market.outcome, 'outcome should be false');
+        assert(market.total_yes_amount == 0, 'total_yes should be 0');
+        assert(market.total_no_amount == 0, 'total_no should be 0');
     }
 
     #[test]
-    fn test_spawn_resets_after_death() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_place_prediction() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
 
-        // Manually set player to dead state
-        let dead_player = Player {
-            address: caller,
-            hp: 0,
-            max_hp: 100,
-            floor: 10,
-            gold: 50,
-            prediction_streak: 0,
-            best_streak: 3,
-            total_predictions: 10,
-            correct_predictions: 5,
-            is_alive: false,
-            next_event_seed: 0,
-            clue_type: 0,
-            clue_detail: 0,
-            streak_tier: 0,
-        };
-        world.write_model_test(@dead_player);
+        actions.place_prediction(1, true, 500);
 
-        // Respawn
-        actions_system.spawn();
+        let trader: Trader = world.read_model(caller);
+        assert(trader.balance == 9500, 'balance should be 9500');
+        assert(trader.markets_played == 1, 'played should be 1');
+        assert(trader.total_wagered == 500, 'wagered should be 500');
 
-        let player: Player = world.read_model(caller);
-        assert(player.hp == 100, 'hp should reset to 100');
-        assert(player.floor == 0, 'floor should reset to 0');
-        assert(player.is_alive, 'should be alive after respawn');
-        assert(player.streak_tier == 0, 'tier should reset to 0');
+        let position: Position = world.read_model((caller, 1));
+        assert(position.is_yes, 'should be YES');
+        assert(position.amount == 500, 'amount should be 500');
+        assert(!position.is_settled, 'should not be settled');
+
+        let market: Market = world.read_model(1);
+        assert(market.total_yes_amount == 500, 'total_yes should be 500');
+        assert(market.total_no_amount == 0, 'total_no should be 0');
     }
 
     #[test]
-    fn test_correct_prediction_earns_streak() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_place_prediction_auto_settle() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
+        // Resolve market first (YES wins)
+        actions.resolve_market(1, true);
 
-        actions_system.spawn();
+        // Place YES prediction on resolved market → auto-settles
+        actions.place_prediction(1, true, 500);
 
-        // Make a correct prediction by reading the seed
-        let correct = get_correct_prediction(@world, caller);
-        actions_system.predict_and_advance(correct, 0);
+        let position: Position = world.read_model((caller, 1));
+        assert(position.is_settled, 'should be auto-settled');
+        // Payout = 500 * 280 / 100 = 1400
+        assert(position.payout == 1400, 'payout should be 1400');
 
-        let player: Player = world.read_model(caller);
-        assert(player.prediction_streak == 1, 'streak should be 1');
-        assert(player.correct_predictions == 1, 'correct should be 1');
+        let trader: Trader = world.read_model(caller);
+        // Balance: 10000 - 500 (deducted) + 1400 (payout) = 10900
+        assert(trader.balance == 10900, 'balance should be 10900');
+        assert(trader.correct_predictions == 1, 'correct should be 1');
+        assert(trader.streak == 1, 'streak should be 1');
     }
 
     #[test]
-    fn test_wager_system() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_claim_correct() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
 
-        actions_system.spawn();
+        // Place NO prediction
+        actions.place_prediction(1, false, 1000);
 
-        // Give the player some gold to wager
-        let mut player: Player = world.read_model(caller);
-        player.gold = 100;
-        world.write_model_test(@player);
+        // Resolve market (NO wins → outcome=false)
+        actions.resolve_market(1, false);
 
-        // Make a correct prediction with wager
-        let correct = get_correct_prediction(@world, caller);
-        actions_system.predict_and_advance(correct, 50);
+        // Claim
+        actions.claim(1);
 
-        let player_after: Player = world.read_model(caller);
-        // Should have gained gold from event + wager bonus
-        // At tier 0 (streak=1), mult=100, wager gain = 50*100/100 = 50
-        assert(player_after.gold > 100, 'should gain gold from wager');
+        let position: Position = world.read_model((caller, 1));
+        assert(position.is_settled, 'should be settled');
+        // Payout = 1000 * 140 / 100 = 1400
+        assert(position.payout == 1400, 'payout should be 1400');
+
+        let trader: Trader = world.read_model(caller);
+        // Balance: 10000 - 1000 + 1400 = 10400
+        assert(trader.balance == 10400, 'balance should be 10400');
+        assert(trader.correct_predictions == 1, 'correct should be 1');
+        assert(trader.streak == 1, 'streak should be 1');
+        assert(trader.total_won == 1400, 'won should be 1400');
     }
 
     #[test]
-    fn test_wager_loss() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_claim_wrong() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
 
-        actions_system.spawn();
+        // Place YES prediction
+        actions.place_prediction(1, true, 500);
 
-        // Give the player gold
-        let mut player: Player = world.read_model(caller);
-        player.gold = 100;
-        world.write_model_test(@player);
+        // Resolve market (NO wins → outcome=false, so YES is wrong)
+        actions.resolve_market(1, false);
 
-        // Make a wrong prediction with wager
-        let correct = get_correct_prediction(@world, caller);
-        let wrong = (correct + 1) % 4;
-        actions_system.predict_and_advance(wrong, 50);
+        // Claim
+        actions.claim(1);
 
-        let player_after: Player = world.read_model(caller);
-        // Lost 50 gold from wager, but may have gained some from event
-        // The key check: gold should be less than 100 (started) minus 50 (wager) + whatever event gold
-        assert(player_after.prediction_streak == 0, 'streak should reset');
+        let position: Position = world.read_model((caller, 1));
+        assert(position.is_settled, 'should be settled');
+        assert(position.payout == 0, 'payout should be 0');
+
+        let trader: Trader = world.read_model(caller);
+        // Balance: 10000 - 500 = 9500 (no payout)
+        assert(trader.balance == 9500, 'balance should be 9500');
+        assert(trader.correct_predictions == 0, 'correct should be 0');
+        assert(trader.streak == 0, 'streak should be 0');
+        assert(trader.total_lost == 500, 'lost should be 500');
     }
 
     #[test]
-    fn test_boss_floor() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    #[should_panic(expected: ("Already have a position on this market.", 'ENTRYPOINT_FAILED'))]
+    fn test_cannot_double_bet() {
+        let (_, actions, _) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
 
-        actions_system.spawn();
-
-        // Set player to floor 4 so next floor (5) is boss
-        let mut player: Player = world.read_model(caller);
-        player.floor = 4;
-        player.hp = 100;
-        player.gold = 50;
-        world.write_model_test(@player);
-
-        // Predict for floor 5 (boss floor)
-        let correct = get_correct_prediction(@world, caller);
-        actions_system.predict_and_advance(correct, 0);
-
-        let player_after: Player = world.read_model(caller);
-        assert(player_after.floor == 5, 'floor should be 5');
-
-        // Check the round was marked as boss
-        let round: GameRound = world.read_model((caller, 5));
-        assert(round.is_boss, 'floor 5 should be boss');
+        actions.place_prediction(1, true, 500);
+        // Second bet should fail
+        actions.place_prediction(1, false, 500);
     }
 
     #[test]
-    fn test_streak_tiers() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_cash_out_early() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
 
-        actions_system.spawn();
+        // Place YES bet of $1000
+        actions.place_prediction(1, true, 1000);
 
-        // Set streak to 2, make correct prediction → streak=3 → tier 1 (Hot)
-        let mut player: Player = world.read_model(caller);
-        player.prediction_streak = 2;
-        world.write_model_test(@player);
+        // Cash out before resolution
+        actions.cash_out_early(1);
 
-        let correct = get_correct_prediction(@world, caller);
-        actions_system.predict_and_advance(correct, 0);
+        let position: Position = world.read_model((caller, 1));
+        assert(position.is_settled, 'should be settled');
+        // With $1000 on YES and $0 on NO: your_side=1000, other_side=0
+        // raw = 1000 * (50 + 0*100/1000) / 100 = 1000*50/100 = 500 (min 50%)
+        assert(position.payout == 500, 'payout should be 500');
 
-        let player_after: Player = world.read_model(caller);
-        assert(player_after.prediction_streak == 3, 'streak should be 3');
-        assert(player_after.streak_tier == 1, 'tier should be 1 (Hot)');
-
-        // Set streak to 7, make correct prediction → streak=8 → tier 3 (Prophetic)
-        let mut player2: Player = world.read_model(caller);
-        player2.prediction_streak = 7;
-        world.write_model_test(@player2);
-
-        let correct2 = get_correct_prediction(@world, caller);
-        actions_system.predict_and_advance(correct2, 0);
-
-        let player_after2: Player = world.read_model(caller);
-        assert(player_after2.streak_tier == 3, 'tier should be 3 (Prophetic)');
+        let trader: Trader = world.read_model(caller);
+        // 10000 - 1000 + 500 = 9500
+        assert(trader.balance == 9500, 'balance should be 9500');
+        assert(trader.total_lost == 500, 'lost should be 500');
     }
 
     #[test]
-    fn test_clues_generated() {
-        let caller: ContractAddress = 0.try_into().unwrap();
-        let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
-        world.sync_perms_and_inits(contract_defs());
+    fn test_leaderboard_update() {
+        let (world, actions, caller) = setup();
 
-        let (contract_address, _) = world.dns(@"actions").unwrap();
-        let actions_system = IActionsDispatcher { contract_address };
+        actions.create_trader();
+        actions.create_market(1, 280, 140);
+        // Pre-resolve YES
+        actions.resolve_market(1, true);
 
-        actions_system.spawn();
+        // Place correct YES prediction → auto-settle → balance goes up
+        actions.place_prediction(1, true, 1000);
 
-        let player: Player = world.read_model(caller);
-        // Verify clues are consistent with seed
-        let seed_u256: u256 = player.next_event_seed.into();
-        let event_type: u8 = (seed_u256 % 4).try_into().unwrap();
-
-        // Category clue should match event
-        if event_type < 2 {
-            assert(player.clue_type == 0, 'should be danger clue');
-        } else {
-            assert(player.clue_type == 1, 'should be fortune clue');
-        }
-
-        // After prediction, new clues should be generated
-        actions_system.predict_and_advance(0, 0);
-        let player2: Player = world.read_model(caller);
-        assert(player2.clue_type <= 1, 'new clue_type valid');
-        assert(player2.clue_detail <= 4, 'new clue_detail valid');
+        let entry: LeaderboardEntry = world.read_model(caller);
+        // Balance after: 10000 - 1000 + 2800 = 11800
+        assert(entry.high_score == 11800, 'high_score should be 11800');
+        assert(entry.best_streak == 1, 'best_streak should be 1');
+        assert(entry.total_runs == 1, 'total_runs should be 1');
     }
 }

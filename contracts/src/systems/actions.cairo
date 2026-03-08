@@ -1,370 +1,440 @@
 #[starknet::interface]
 pub trait IActions<T> {
-    fn spawn(ref self: T);
-    fn predict_and_advance(ref self: T, prediction: u8, wager: u32);
+    fn create_trader(ref self: T);
+    fn create_market(ref self: T, market_id: u32, yes_odds: u32, no_odds: u32);
+    fn place_prediction(ref self: T, market_id: u32, is_yes: bool, amount: u32);
+    fn resolve_market(ref self: T, market_id: u32, outcome: bool);
+    fn claim(ref self: T, market_id: u32);
+    fn buy_relic(ref self: T, relic_type: u32);
+    fn bet_world_boss(ref self: T, is_yes: bool, amount: u32);
+    fn init_world_boss(ref self: T, title_id: u32);
+    fn cash_out_early(ref self: T, market_id: u32);
 }
 
 #[dojo::contract]
 pub mod actions {
-    use core::pedersen::pedersen;
     use dojo::event::EventStorage;
     use dojo::model::ModelStorage;
-    use prophecy_roguelite::models::{
-        Player, GameRound, LeaderboardEntry, EventType, event_type_from_u8,
-    };
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
+    use prophecy_roguelite::models::{Market, Position, Trader, LeaderboardEntry, Relics, WorldBoss};
+    use starknet::{ContractAddress, get_caller_address};
     use super::IActions;
 
     #[derive(Copy, Drop, Serde)]
     #[dojo::event]
-    pub struct PlayerSpawned {
+    pub struct TraderCreated {
         #[key]
         pub player: ContractAddress,
-        pub hp: u32,
+        pub balance: u32,
     }
 
     #[derive(Copy, Drop, Serde)]
     #[dojo::event]
-    pub struct FloorResolved {
+    pub struct PredictionPlaced {
         #[key]
         pub player: ContractAddress,
-        pub floor: u32,
-        pub event_type: EventType,
-        pub was_correct: bool,
-        pub damage: u32,
-        pub gold: u32,
-        pub heal: u32,
+        pub market_id: u32,
+        pub is_yes: bool,
+        pub amount: u32,
     }
 
     #[derive(Copy, Drop, Serde)]
     #[dojo::event]
-    pub struct PlayerDied {
+    pub struct MarketResolved {
+        #[key]
+        pub market_id: u32,
+        pub outcome: bool,
+    }
+
+    #[derive(Copy, Drop, Serde)]
+    #[dojo::event]
+    pub struct PositionSettled {
         #[key]
         pub player: ContractAddress,
-        pub final_floor: u32,
-        pub final_score: u32,
+        pub market_id: u32,
+        pub correct: bool,
+        pub payout: u32,
     }
 
     #[abi(embed_v0)]
     impl ActionsImpl of IActions<ContractState> {
-        fn spawn(ref self: ContractState) {
+        fn create_trader(ref self: ContractState) {
             let mut world = self.world_default();
             let player_address = get_caller_address();
 
-            // Generate seed for floor 1
-            let timestamp: felt252 = get_block_timestamp().into();
-            let addr_felt: felt252 = player_address.into();
-            let seed = pedersen(pedersen(timestamp, 1), addr_felt);
-            let (clue_type, clue_detail) = generate_clues(seed);
-
-            let new_player = Player {
+            let trader = Trader {
                 address: player_address,
-                hp: 100,
-                max_hp: 100,
-                floor: 0,
-                gold: 0,
-                prediction_streak: 0,
-                best_streak: 0,
-                total_predictions: 0,
+                balance: 10000,
+                total_wagered: 0,
+                total_won: 0,
+                total_lost: 0,
+                markets_played: 0,
                 correct_predictions: 0,
-                is_alive: true,
-                next_event_seed: seed,
-                clue_type,
-                clue_detail,
-                streak_tier: 0,
+                streak: 0,
+                best_streak: 0,
             };
 
-            world.write_model(@new_player);
-            world.emit_event(@PlayerSpawned { player: player_address, hp: 100 });
+            world.write_model(@trader);
+            world.emit_event(@TraderCreated { player: player_address, balance: 10000 });
         }
 
-        fn predict_and_advance(ref self: ContractState, prediction: u8, wager: u32) {
+        fn create_market(ref self: ContractState, market_id: u32, yes_odds: u32, no_odds: u32) {
+            let mut world = self.world_default();
+
+            // Verify market doesn't already exist (yes_odds would be 0 for uninitialized)
+            let existing: Market = world.read_model(market_id);
+            assert!(existing.yes_odds == 0, "Market already exists");
+
+            let market = Market {
+                market_id,
+                yes_odds,
+                no_odds,
+                is_resolved: false,
+                outcome: false,
+                total_yes_amount: 0,
+                total_no_amount: 0,
+            };
+
+            world.write_model(@market);
+        }
+
+        fn place_prediction(ref self: ContractState, market_id: u32, is_yes: bool, amount: u32) {
             let mut world = self.world_default();
             let player_address = get_caller_address();
-            let mut player: Player = world.read_model(player_address);
+
+            // Read trader and market
+            let mut trader: Trader = world.read_model(player_address);
+            let mut market: Market = world.read_model(market_id);
 
             // Validate
-            assert!(player.is_alive, "Player is dead. Call spawn() to restart.");
-            assert!(prediction < 4, "Invalid prediction. Must be 0-3.");
-            assert!(wager <= player.gold, "Wager exceeds gold.");
+            assert!(trader.balance > 0, "No trader account. Call create_trader() first.");
+            assert!(market.yes_odds > 0, "Market does not exist.");
+            assert!(amount > 0, "Amount must be greater than 0.");
+            assert!(amount <= trader.balance, "Insufficient balance.");
 
-            let new_floor = player.floor + 1;
+            // Check no existing position
+            let existing_pos: Position = world.read_model((player_address, market_id));
+            assert!(existing_pos.amount == 0, "Already have a position on this market.");
 
-            // Determine event from pre-committed seed
-            let seed_u256: u256 = player.next_event_seed.into();
-            let event_type_val: u8 = (seed_u256 % 4).try_into().unwrap();
-            let event_type = event_type_from_u8(event_type_val);
-            let player_prediction = event_type_from_u8(prediction);
+            // Deduct from balance
+            trader.balance -= amount;
+            trader.markets_played += 1;
+            trader.total_wagered += amount;
 
-            let was_correct = event_type_val == prediction;
-
-            // Update streak and calculate tier
-            let new_streak = if was_correct {
-                player.prediction_streak + 1
-            } else {
-                0
-            };
-            let (tier, tier_mult) = get_streak_tier(new_streak);
-
-            // Boss floor check
-            let is_boss = new_floor % 5 == 0;
-
-            // Calculate base outcomes
-            let (base_damage, base_gold, base_heal) = calculate_outcome(
-                event_type, was_correct, new_floor,
-            );
-
-            // Apply boss multiplier (2x)
-            let mut damage = if is_boss {
-                base_damage * 2
-            } else {
-                base_damage
-            };
-            let mut gold = if is_boss {
-                base_gold * 2
-            } else {
-                base_gold
-            };
-            let mut heal = if is_boss {
-                base_heal * 2
-            } else {
-                base_heal
+            // Create position
+            let mut position = Position {
+                player: player_address,
+                market_id,
+                is_yes,
+                amount,
+                is_settled: false,
+                payout: 0,
             };
 
-            // Apply tier multiplier to gold rewards
-            gold = (gold * tier_mult) / 100;
-
-            // Apply wager
-            if was_correct && wager > 0 {
-                gold += (wager * tier_mult) / 100;
+            // Update market totals
+            if is_yes {
+                market.total_yes_amount += amount;
+            } else {
+                market.total_no_amount += amount;
             }
 
-            // Boss correct bonus
-            if is_boss && was_correct {
-                gold += 10 + new_floor;
-                heal += player.max_hp / 4;
-            }
+            world.write_model(@market);
 
-            // Prophetic tier HP regen
-            if tier == 3 {
-                heal += 5;
-            }
-
-            // Apply damage
-            if damage >= player.hp {
-                player.hp = 0;
-                player.is_alive = false;
-            } else if damage > 0 {
-                player.hp -= damage;
-            }
-
-            // Deduct wager loss
-            if !was_correct && wager > 0 {
-                if wager >= player.gold {
-                    player.gold = 0;
+            // If market already resolved, auto-settle
+            if market.is_resolved {
+                let correct = (is_yes && market.outcome) || (!is_yes && !market.outcome);
+                if correct {
+                    let odds = if is_yes {
+                        market.yes_odds
+                    } else {
+                        market.no_odds
+                    };
+                    let payout_amount = (amount * odds) / 100;
+                    position.payout = payout_amount;
+                    trader.balance += payout_amount;
+                    trader.total_won += payout_amount;
+                    trader.correct_predictions += 1;
+                    trader.streak += 1;
+                    if trader.streak > trader.best_streak {
+                        trader.best_streak = trader.streak;
+                    }
                 } else {
-                    player.gold -= wager;
+                    position.payout = 0;
+                    trader.total_lost += amount;
+                    trader.streak = 0;
                 }
-            }
+                position.is_settled = true;
 
-            // Apply healing (cap at max_hp)
-            if heal > 0 {
-                let new_hp = player.hp + heal;
-                if new_hp > player.max_hp {
-                    player.hp = player.max_hp;
-                } else {
-                    player.hp = new_hp;
-                }
-            }
-
-            // Update stats
-            player.floor = new_floor;
-            player.gold += gold;
-            player.total_predictions += 1;
-
-            if was_correct {
-                player.correct_predictions += 1;
-                player.prediction_streak = new_streak;
-                if new_streak > player.best_streak {
-                    player.best_streak = new_streak;
-                }
-            } else {
-                player.prediction_streak = 0;
-            }
-
-            player.streak_tier = tier;
-
-            // Generate next seed and clues
-            let timestamp: felt252 = get_block_timestamp().into();
-            let new_seed = pedersen(
-                pedersen(timestamp, (new_floor + 1).into()), player.next_event_seed,
-            );
-            let (new_clue_type, new_clue_detail) = generate_clues(new_seed);
-            player.next_event_seed = new_seed;
-            player.clue_type = new_clue_type;
-            player.clue_detail = new_clue_detail;
-
-            // Save player state
-            world.write_model(@player);
-
-            // Save round details
-            let round = GameRound {
-                address: player_address,
-                floor: new_floor,
-                event_type,
-                player_prediction,
-                damage_dealt: damage,
-                gold_earned: gold,
-                hp_healed: heal,
-                was_correct,
-                wager_amount: wager,
-                is_boss,
-            };
-            world.write_model(@round);
-
-            // Emit floor resolved event
-            world
-                .emit_event(
-                    @FloorResolved {
-                        player: player_address,
-                        floor: new_floor,
-                        event_type,
-                        was_correct,
-                        damage,
-                        gold,
-                        heal,
-                    },
-                );
-
-            // If player died, update leaderboard
-            if !player.is_alive {
-                let score = calculate_score(@player);
+                // Update leaderboard if balance is a new high
                 let mut entry: LeaderboardEntry = world.read_model(player_address);
-
-                if score > entry.high_score {
-                    entry.high_score = score;
+                if trader.balance > entry.high_score {
+                    entry.high_score = trader.balance;
                 }
-                if new_floor > entry.highest_floor {
-                    entry.highest_floor = new_floor;
-                }
-                if player.best_streak > entry.best_streak {
-                    entry.best_streak = player.best_streak;
-                }
+                entry.highest_floor = trader.markets_played;
+                entry.best_streak = trader.best_streak;
                 entry.total_runs += 1;
-
                 world.write_model(@entry);
 
                 world
                     .emit_event(
-                        @PlayerDied {
-                            player: player_address, final_floor: new_floor, final_score: score,
+                        @PositionSettled {
+                            player: player_address,
+                            market_id,
+                            correct,
+                            payout: position.payout,
                         },
                     );
             }
+
+            world.write_model(@position);
+            world.write_model(@trader);
+            world
+                .emit_event(
+                    @PredictionPlaced {
+                        player: player_address, market_id, is_yes, amount,
+                    },
+                );
         }
-    }
 
-    // Returns (tier, multiplier_percentage) based on prediction streak
-    fn get_streak_tier(streak: u32) -> (u8, u32) {
-        if streak >= 8 {
-            (3, 200) // Prophetic: 2x
-        } else if streak >= 5 {
-            (2, 150) // Blazing: 1.5x
-        } else if streak >= 3 {
-            (1, 125) // Hot: 1.25x
-        } else {
-            (0, 100) // Normal: 1x
+        fn resolve_market(ref self: ContractState, market_id: u32, outcome: bool) {
+            let mut world = self.world_default();
+
+            let mut market: Market = world.read_model(market_id);
+            assert!(market.yes_odds > 0, "Market does not exist.");
+            assert!(!market.is_resolved, "Market already resolved.");
+
+            market.is_resolved = true;
+            market.outcome = outcome;
+
+            world.write_model(@market);
+            world.emit_event(@MarketResolved { market_id, outcome });
         }
-    }
 
-    // Generate category and detail clues from a seed
-    fn generate_clues(seed: felt252) -> (u8, u8) {
-        let seed_u256: u256 = seed.into();
-        let event_type: u8 = (seed_u256 % 4).try_into().unwrap();
+        fn buy_relic(ref self: ContractState, relic_type: u32) {
+            let mut world = self.world_default();
+            let player_address = get_caller_address();
+            let mut trader: Trader = world.read_model(player_address);
+            assert!(trader.balance > 0, "No trader account.");
 
-        // Category clue: danger (Monster/Trap) or fortune (Treasure/Heal)
-        let clue_type: u8 = if event_type < 2 {
-            0 // danger
-        } else {
-            1 // fortune
-        };
-
-        // Detail clue: 50% chance based on different bits of seed
-        let detail_roll: u8 = ((seed_u256 / 4) % 2).try_into().unwrap();
-        let clue_detail: u8 = if detail_roll == 0 {
-            0 // no detail
-        } else {
-            // "Not" the other event in the same category
-            if event_type == 0 {
-                2 // Monster → "not Trap"
-            } else if event_type == 1 {
-                1 // Trap → "not Monster"
-            } else if event_type == 2 {
-                4 // Treasure → "not Heal"
+            // relic_type: 0 = leverage ($1500), 1 = stop_loss ($1000), 2 = insider ($2000)
+            let cost: u32 = if relic_type == 0 {
+                1500
+            } else if relic_type == 1 {
+                1000
+            } else if relic_type == 2 {
+                2000
             } else {
-                3 // Heal → "not Treasure"
+                0
+            };
+            assert!(cost > 0, "Invalid relic type.");
+            assert!(trader.balance >= cost, "Insufficient balance for relic.");
+
+            trader.balance -= cost;
+            world.write_model(@trader);
+
+            let mut relics: Relics = world.read_model(player_address);
+            if relic_type == 0 {
+                relics.leverage_tokens += 1;
+            } else if relic_type == 1 {
+                relics.stop_loss += 1;
+            } else {
+                relics.insider_info += 1;
             }
-        };
-
-        (clue_type, clue_detail)
-    }
-
-    // Event outcomes scale with floor depth
-    fn calculate_outcome(
-        event_type: EventType, predicted_correctly: bool, floor: u32,
-    ) -> (u32, u32, u32) {
-        let base_damage = 10 + (floor * 2); // Gets harder each floor
-        let base_gold = 5 + floor;
-        let base_heal: u32 = 15;
-
-        match event_type {
-            EventType::Monster => {
-                if predicted_correctly {
-                    // First strike — half damage, earn gold
-                    (base_damage / 2, base_gold, 0)
-                } else {
-                    // Ambushed — full damage, no gold
-                    (base_damage, 0, 0)
-                }
-            },
-            EventType::Trap => {
-                if predicted_correctly {
-                    // Avoided trap, find hidden gold
-                    (0, base_gold / 2, 0)
-                } else {
-                    // Walked right into it
-                    (base_damage * 3 / 4, 0, 0)
-                }
-            },
-            EventType::Treasure => {
-                if predicted_correctly {
-                    // Prepared — grab everything
-                    (0, base_gold * 3, 0)
-                } else {
-                    // Missed most of it
-                    (0, base_gold / 2, 0)
-                }
-            },
-            EventType::Heal => {
-                if predicted_correctly {
-                    // Full restoration
-                    (0, 0, base_heal + 5)
-                } else {
-                    // Partial heal
-                    (0, 0, base_heal / 2)
-                }
-            },
+            relics.address = player_address;
+            world.write_model(@relics);
         }
-    }
 
-    fn calculate_score(player: @Player) -> u32 {
-        let accuracy_bonus = if *player.total_predictions > 0 {
-            (*player.correct_predictions * 100) / *player.total_predictions
-        } else {
-            0
-        };
-        // Score = floors * 10 + gold + accuracy_bonus + streak_bonus
-        (*player.floor * 10) + *player.gold + accuracy_bonus + (*player.best_streak * 5)
+        fn claim(ref self: ContractState, market_id: u32) {
+            let mut world = self.world_default();
+            let player_address = get_caller_address();
+
+            let market: Market = world.read_model(market_id);
+            assert!(market.is_resolved, "Market not yet resolved.");
+
+            let mut position: Position = world.read_model((player_address, market_id));
+            assert!(position.amount > 0, "No position on this market.");
+            assert!(!position.is_settled, "Position already settled.");
+
+            let mut trader: Trader = world.read_model(player_address);
+
+            let correct = (position.is_yes && market.outcome)
+                || (!position.is_yes && !market.outcome);
+
+            if correct {
+                let odds = if position.is_yes {
+                    market.yes_odds
+                } else {
+                    market.no_odds
+                };
+                let payout_amount = (position.amount * odds) / 100;
+                position.payout = payout_amount;
+                trader.balance += payout_amount;
+                trader.total_won += payout_amount;
+                trader.correct_predictions += 1;
+                trader.streak += 1;
+                if trader.streak > trader.best_streak {
+                    trader.best_streak = trader.streak;
+                }
+            } else {
+                position.payout = 0;
+                trader.total_lost += position.amount;
+                trader.streak = 0;
+            }
+
+            position.is_settled = true;
+
+            // Update leaderboard
+            let mut entry: LeaderboardEntry = world.read_model(player_address);
+            if trader.balance > entry.high_score {
+                entry.high_score = trader.balance;
+            }
+            entry.highest_floor = trader.markets_played;
+            entry.best_streak = trader.best_streak;
+            entry.total_runs += 1;
+            world.write_model(@entry);
+
+            world.write_model(@position);
+            world.write_model(@trader);
+            world
+                .emit_event(
+                    @PositionSettled {
+                        player: player_address, market_id, correct, payout: position.payout,
+                    },
+                );
+        }
+
+        fn init_world_boss(ref self: ContractState, title_id: u32) {
+            let mut world = self.world_default();
+            let zero_addr: ContractAddress = 0.try_into().unwrap();
+            let boss = WorldBoss {
+                boss_id: 0,
+                title_id,
+                total_yes: 0,
+                total_no: 0,
+                total_yes_amount: 0,
+                total_no_amount: 0,
+                is_resolved: false,
+                outcome: false,
+                recent_0: zero_addr,
+                recent_1: zero_addr,
+                recent_2: zero_addr,
+                recent_3: zero_addr,
+                recent_4: zero_addr,
+            };
+            world.write_model(@boss);
+        }
+
+        fn cash_out_early(ref self: ContractState, market_id: u32) {
+            let mut world = self.world_default();
+            let player_address = get_caller_address();
+
+            let market: Market = world.read_model(market_id);
+            assert!(market.yes_odds > 0, "Market does not exist.");
+            assert!(!market.is_resolved, "Market already resolved. Use claim instead.");
+
+            let mut position: Position = world.read_model((player_address, market_id));
+            assert!(position.amount > 0, "No position on this market.");
+            assert!(!position.is_settled, "Position already settled.");
+
+            let mut trader: Trader = world.read_model(player_address);
+
+            // Dynamic cash-out value based on market sentiment (50%-150% of wager):
+            // If you bet YES and more money is on YES, your position is worth less (crowded).
+            // If you bet YES and less money is on YES (contrarian), worth more.
+            let total_pool = market.total_yes_amount + market.total_no_amount;
+            let cash_out_amount = if total_pool == 0 {
+                // No pool data: refund 80% as a flat exit fee
+                (position.amount * 80) / 100
+            } else {
+                let your_side = if position.is_yes {
+                    market.total_yes_amount
+                } else {
+                    market.total_no_amount
+                };
+                let other_side = total_pool - your_side;
+                // Ratio: other_side / your_side, clamped to [50%, 150%] of wager
+                // More on the other side = your position is more valuable
+                let raw = (position.amount * (50 + (other_side * 100) / total_pool)) / 100;
+                // Clamp between 50% and 150%
+                let min_out = (position.amount * 50) / 100;
+                let max_out = (position.amount * 150) / 100;
+                if raw < min_out {
+                    min_out
+                } else if raw > max_out {
+                    max_out
+                } else {
+                    raw
+                }
+            };
+
+            position.payout = cash_out_amount;
+            position.is_settled = true;
+            trader.balance += cash_out_amount;
+            if cash_out_amount >= position.amount {
+                trader.total_won += cash_out_amount - position.amount;
+            } else {
+                trader.total_lost += position.amount - cash_out_amount;
+            }
+
+            world.write_model(@position);
+            world.write_model(@trader);
+            world
+                .emit_event(
+                    @PositionSettled {
+                        player: player_address,
+                        market_id,
+                        correct: cash_out_amount >= position.amount,
+                        payout: cash_out_amount,
+                    },
+                );
+        }
+
+        fn bet_world_boss(ref self: ContractState, is_yes: bool, amount: u32) {
+            let mut world = self.world_default();
+            let player_address = get_caller_address();
+
+            let mut trader: Trader = world.read_model(player_address);
+            assert!(trader.balance > 0, "No trader account.");
+            assert!(amount > 0 && amount <= trader.balance, "Invalid amount.");
+
+            let mut boss: WorldBoss = world.read_model(0_u32);
+            assert!(!boss.is_resolved, "World Boss already resolved.");
+
+            trader.balance -= amount;
+            trader.total_wagered += amount;
+
+            if is_yes {
+                boss.total_yes += 1;
+                boss.total_yes_amount += amount;
+            } else {
+                boss.total_no += 1;
+                boss.total_no_amount += amount;
+            }
+
+            // Ring buffer: store in slot (total_bets - 1) % 5
+            let total_bets = boss.total_yes + boss.total_no;
+            let slot = (total_bets - 1) % 5;
+            if slot == 0 {
+                boss.recent_0 = player_address;
+            } else if slot == 1 {
+                boss.recent_1 = player_address;
+            } else if slot == 2 {
+                boss.recent_2 = player_address;
+            } else if slot == 3 {
+                boss.recent_3 = player_address;
+            } else {
+                boss.recent_4 = player_address;
+            }
+
+            world.write_model(@boss);
+            world.write_model(@trader);
+            world
+                .emit_event(
+                    @PredictionPlaced {
+                        player: player_address, market_id: 9999, is_yes, amount,
+                    },
+                );
+        }
+
     }
 
     #[generate_trait]

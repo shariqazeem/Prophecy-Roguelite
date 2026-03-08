@@ -1,0 +1,604 @@
+{
+  "markets": [
+    {
+      "id": 1,
+      "title": "There are more trees on Earth than stars in the Milky Way",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 280, "no": 140}
+    },
+    {
+      "id": 2,
+      "title": "The Great Wall of China is visible from space with the naked eye",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 170, "no": 220}
+    },
+    {
+      "id": 3,
+      "title": "Cleopatra lived closer in time to the Moon landing than to the Great Pyramids being built",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 350, "no": 120}
+    },
+    {
+      "id": 4,
+      "title": "Goldfish have a 3-second memory",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 160, "no": 250}
+    },
+    {
+      "id": 5,
+      "title": "Honey can remain edible for thousands of years without spoiling",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 6,
+      "title": "An octopus has three hearts",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 7,
+      "title": "Bitcoin will trade above $120K at any point in March 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 300, "no": 150}
+    },
+    {
+      "id": 8,
+      "title": "Ethereum gas fees will average under $0.50 for a full week in 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 180, "no": 210}
+    },
+    {
+      "id": 9,
+      "title": "Dojo Game Jam VIII will receive more than 30 submissions",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 250, "no": 170}
+    },
+    {
+      "id": 10,
+      "title": "Starknet will be a top-10 L2 by TVL before July 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 350, "no": 130}
+    },
+    {
+      "id": 11,
+      "title": "GPT-5 or equivalent next-gen model released before July 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 12,
+      "title": "An AI-generated film will be nominated at a major film festival in 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 180, "no": 220}
+    },
+    {
+      "id": 13,
+      "title": "A new country will adopt Bitcoin as legal tender in 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 14,
+      "title": "Apple will announce a foldable or non-phone wearable device in 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 160, "no": 240}
+    },
+    {
+      "id": 15,
+      "title": "An autonomous robotaxi will launch commercially in 5+ US cities by end of 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 280, "no": 150}
+    },
+    {
+      "id": 16,
+      "title": "Bananas are radioactive",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 150, "no": 260}
+    },
+    {
+      "id": 17,
+      "title": "Lightning never strikes the same place twice",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 190, "no": 200}
+    },
+    {
+      "id": 18,
+      "title": "Vikings wore horned helmets in battle",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 19,
+      "title": "Oxford University is older than the Aztec Empire",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 300, "no": 140}
+    },
+    {
+      "id": 20,
+      "title": "Russia has more surface area than Pluto",
+      "category": "Geography",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 250, "no": 160}
+    },
+    {
+      "id": 21,
+      "title": "Africa is smaller than the Moon's surface area",
+      "category": "Geography",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 180, "no": 220}
+    },
+    {
+      "id": 22,
+      "title": "A shrimp's heart is located in its head",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 160, "no": 250}
+    },
+    {
+      "id": 23,
+      "title": "Bats are blind",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 210, "no": 180}
+    },
+    {
+      "id": 24,
+      "title": "The inventor of the Pringles can is buried in one",
+      "category": "Pop Culture",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 170, "no": 230}
+    },
+    {
+      "id": 25,
+      "title": "A golf ball has more than 300 dimples",
+      "category": "Sports",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 190, "no": 200}
+    },
+    {
+      "id": 26,
+      "title": "Humans share about 60% of their DNA with bananas",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 27,
+      "title": "Napoleon Bonaparte was unusually short for his era",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 28,
+      "title": "A day on Venus is longer than a year on Venus",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 160, "no": 250}
+    },
+    {
+      "id": 29,
+      "title": "The Eiffel Tower grows taller in summer due to heat expansion",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 180, "no": 210}
+    },
+    {
+      "id": 30,
+      "title": "Bulls are enraged by the color red",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 230, "no": 170}
+    },
+    {
+      "id": 31,
+      "title": "Sharks are older than trees in evolutionary history",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 280, "no": 140}
+    },
+    {
+      "id": 32,
+      "title": "Chameleons change color to blend in with surroundings",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 240, "no": 160}
+    },
+    {
+      "id": 33,
+      "title": "The Great Pyramid was the tallest structure for over 3,800 years",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 190, "no": 200}
+    },
+    {
+      "id": 34,
+      "title": "Lemmings commit mass suicide by jumping off cliffs",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 210, "no": 180}
+    },
+    {
+      "id": 35,
+      "title": "There are more possible chess games than atoms in the observable universe",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 150, "no": 260}
+    },
+    {
+      "id": 36,
+      "title": "Humans only use 10% of their brains",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 37,
+      "title": "Scotland's national animal is the unicorn",
+      "category": "Pop Culture",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 170, "no": 230}
+    },
+    {
+      "id": 38,
+      "title": "The Amazon River is the longest river in the world",
+      "category": "Geography",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 250, "no": 160}
+    },
+    {
+      "id": 39,
+      "title": "Mount Everest is the tallest mountain measured from base to peak",
+      "category": "Geography",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 230, "no": 170}
+    },
+    {
+      "id": 40,
+      "title": "A strawberry is not technically a berry, but a banana is",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 160, "no": 240}
+    },
+    {
+      "id": 41,
+      "title": "The Olympics used to award medals for art competitions",
+      "category": "Sports",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 180, "no": 220}
+    },
+    {
+      "id": 42,
+      "title": "Wombat poop is cube-shaped",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 150, "no": 270}
+    },
+    {
+      "id": 43,
+      "title": "Einstein failed math in school",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 44,
+      "title": "Cleopatra was ethnically Egyptian",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 240, "no": 160}
+    },
+    {
+      "id": 45,
+      "title": "A group of flamingos is called a flamboyance",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 170, "no": 230}
+    },
+    {
+      "id": 46,
+      "title": "Sound can travel through the vacuum of outer space",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 190, "no": 200}
+    },
+    {
+      "id": 47,
+      "title": "The shortest war in history lasted only 38 minutes",
+      "category": "History",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 210, "no": 180}
+    },
+    {
+      "id": 48,
+      "title": "Peanuts are technically nuts",
+      "category": "Nature",
+      "pre_resolved": true,
+      "outcome": false,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 49,
+      "title": "Hot water freezes faster than cold water under certain conditions",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 180, "no": 210}
+    },
+    {
+      "id": 50,
+      "title": "The human body contains enough iron to make a small nail",
+      "category": "Science",
+      "pre_resolved": true,
+      "outcome": true,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 51,
+      "title": "Solana will flip Ethereum in daily transactions before 2027",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 180, "no": 220}
+    },
+    {
+      "id": 52,
+      "title": "A major US bank will offer Bitcoin custody to retail clients in 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 300, "no": 140}
+    },
+    {
+      "id": 53,
+      "title": "Total crypto market cap will exceed $5 trillion in 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 250, "no": 160}
+    },
+    {
+      "id": 54,
+      "title": "An AI agent will autonomously earn $1M in crypto trading by end of 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 150, "no": 260}
+    },
+    {
+      "id": 55,
+      "title": "Starknet will process over 100 TPS sustained for a full day in 2026",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 56,
+      "title": "Tesla will accept Bitcoin payments again before 2027",
+      "category": "Crypto",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 57,
+      "title": "Neuralink will receive FDA approval for a consumer brain implant by 2027",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 140, "no": 280}
+    },
+    {
+      "id": 58,
+      "title": "A humanoid robot will work a full retail shift by end of 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 170, "no": 230}
+    },
+    {
+      "id": 59,
+      "title": "SpaceX Starship will successfully land on Mars soil before 2028",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 130, "no": 300}
+    },
+    {
+      "id": 60,
+      "title": "An AI model will pass the US bar exam with a top-10% score in 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 280, "no": 140}
+    },
+    {
+      "id": 61,
+      "title": "Apple will release AR glasses (not Vision Pro) before 2027",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 190, "no": 200}
+    },
+    {
+      "id": 62,
+      "title": "A deepfake will cause a major stock to move 5%+ in a single day in 2026",
+      "category": "Tech",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 210, "no": 180}
+    },
+    {
+      "id": 63,
+      "title": "Manchester City will win the 2025-26 Premier League",
+      "category": "Sports",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 250, "no": 160}
+    },
+    {
+      "id": 64,
+      "title": "A sub-2-hour official marathon will be recorded before 2027",
+      "category": "Sports",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 140, "no": 290}
+    },
+    {
+      "id": 65,
+      "title": "The 2026 FIFA World Cup final will have over 1 billion viewers",
+      "category": "Sports",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 300, "no": 140}
+    },
+    {
+      "id": 66,
+      "title": "An esports tournament will offer a $50M+ prize pool in 2026",
+      "category": "Sports",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 160, "no": 250}
+    },
+    {
+      "id": 67,
+      "title": "The next Marvel movie will gross over $1 billion worldwide",
+      "category": "Entertainment",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 270, "no": 150}
+    },
+    {
+      "id": 68,
+      "title": "A streaming service will surpass Netflix in global subscribers by 2027",
+      "category": "Entertainment",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 170, "no": 230}
+    },
+    {
+      "id": 69,
+      "title": "GTA VI will be released before December 2026",
+      "category": "Entertainment",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 220, "no": 180}
+    },
+    {
+      "id": 70,
+      "title": "An AI-generated song will reach Billboard Hot 100 in 2026",
+      "category": "Entertainment",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 190, "no": 210}
+    },
+    {
+      "id": 71,
+      "title": "Global average temperature will set a new record in 2026",
+      "category": "World Events",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 280, "no": 140}
+    },
+    {
+      "id": 72,
+      "title": "The US will impose new tariffs on Chinese tech imports in 2026",
+      "category": "World Events",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 320, "no": 130}
+    },
+    {
+      "id": 73,
+      "title": "A country will launch a central bank digital currency with 10M+ users in 2026",
+      "category": "World Events",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 200, "no": 190}
+    },
+    {
+      "id": 74,
+      "title": "Commercial nuclear fusion will generate net positive energy before 2028",
+      "category": "World Events",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 140, "no": 290}
+    },
+    {
+      "id": 75,
+      "title": "World population will officially surpass 8.2 billion in 2026",
+      "category": "World Events",
+      "pre_resolved": false,
+      "outcome": false,
+      "odds": {"yes": 230, "no": 170}
+    }
+  ]
+}
