@@ -82,7 +82,7 @@ func _ready() -> void:
 	var current_path = OS.get_environment("PATH")
 	if not current_path.contains(".asdf/shims"):
 		OS.set_environment("PATH", home + "/.asdf/shims:" + home + "/.dojo/bin:" + current_path)
-	_sozo_path = home + "/.asdf/shims/sozo"
+	_sozo_path = _find_sozo()
 	var project_dir = ProjectSettings.globalize_path("res://")
 	var parent = project_dir.trim_suffix("/").get_base_dir()
 	_manifest_path = parent + "/contracts/Scarb.toml"
@@ -90,6 +90,42 @@ func _ready() -> void:
 	for p in _policies:
 		p["target"] = ACTIONS_CONTRACT
 	print("[Dojo] Mode: ", "Slot" if use_slot else "Local")
+	print("[Dojo] sozo: ", _sozo_path)
+	print("[Dojo] manifest: ", _manifest_path, " exists=", FileAccess.file_exists(_manifest_path))
+
+# Find sozo binary — check bundled location first, then system installs
+func _find_sozo() -> String:
+	# Check bundled sozo inside .app (for end users without sozo installed)
+	var exe_path = OS.get_executable_path()
+	var app_dir = exe_path.get_base_dir()  # Contents/MacOS
+	var bundled = app_dir + "/sozo"
+	if FileAccess.file_exists(bundled):
+		return bundled
+	var home = OS.get_environment("HOME")
+	# Check asdf real installs (bypass shim which breaks in .app context)
+	var asdf_dir = home + "/.asdf/installs/sozo"
+	if DirAccess.dir_exists_absolute(asdf_dir):
+		var dir = DirAccess.open(asdf_dir)
+		if dir:
+			dir.list_dir_begin()
+			var version = dir.get_next()
+			while version != "":
+				if not version.begins_with("."):
+					var candidate = asdf_dir + "/" + version + "/bin/sozo"
+					if FileAccess.file_exists(candidate):
+						return candidate
+				version = dir.get_next()
+	# Other common locations
+	var candidates: Array[String] = [
+		home + "/.dojo/bin/sozo",
+		"/usr/local/bin/sozo",
+		home + "/.cargo/bin/sozo",
+		home + "/.asdf/shims/sozo",
+	]
+	for path in candidates:
+		if FileAccess.file_exists(path):
+			return path
+	return ""
 
 func _get_torii_url() -> String:
 	return SLOT_TORII if use_slot else LOCAL_TORII
@@ -148,21 +184,32 @@ func _setup_controller() -> void:
 
 	var ctrl_owner: DojoOwner = DojoOwner.init(_priv_key)
 
-	print("[Dojo] Headless init: app=%s rpc=%s" % [APP_ID, _get_rpc_url()])
+	# Generate unique username per session (Cartridge rejects duplicates/special chars)
+	var username = "prophet" + str(randi() % 99999)
+	print("[Dojo] Headless init: app=%s user=%s rpc=%s" % [APP_ID, username, _get_rpc_url()])
 	_controller.initialize_headless(
-		APP_ID, "prophecy_player", class_hash, _get_rpc_url(), ctrl_owner, CHAIN_ID
+		APP_ID, username, class_hash, _get_rpc_url(), ctrl_owner, CHAIN_ID
 	)
 
 	print("[Dojo] Signing up Controller on-chain...")
-	_controller.signup(0, 0, "https://api.cartridge.gg")
+	# SignerType: 0=Webauthn, 1=Starknet — we use Starknet key signer
+	_controller.signup(1, 0, "https://api.cartridge.gg")
 
 	# Wait for Controller deployment
-	await get_tree().create_timer(2.0).timeout
+	await get_tree().create_timer(3.0).timeout
 	var addr: String = _controller.address()
 	if addr != "" and addr != "0x0" and addr != "0x":
-		_controller_ready = true
-		print("[Dojo] Controller ready! Address: ", addr)
-		print("[Dojo] Username: ", _controller.username())
+		# Test if the account is actually deployed by trying a dummy call
+		print("[Dojo] Controller address: ", addr, " — verifying deployment...")
+		var test_calls: Array = [{"contract_address": ACTIONS_CONTRACT, "entrypoint": "create_trader", "calldata": []}]
+		var test_result = _controller.execute(test_calls)
+		var result_str = str(test_result) if test_result != null else ""
+		if result_str != "" and result_str != "null" and result_str != "<null>" and result_str != "[]":
+			_controller_ready = true
+			print("[Dojo] Controller VERIFIED! Address: ", addr)
+			print("[Dojo] Username: ", _controller.username())
+		else:
+			print("[Dojo] Controller account not deployed, using sozo fallback")
 	else:
 		push_warning("[Dojo] Controller not ready, using sozo fallback")
 
@@ -170,38 +217,22 @@ func _setup_controller() -> void:
 
 func execute(entrypoint: String, calldata: Array = []) -> void:
 	tx_started.emit(entrypoint)
-	# Controller is initialized for Cartridge integration but execute via sozo
-	# (Controller execute returns empty — GDExtension issue)
 	_execute_sozo(entrypoint, calldata)
 
-# --- Controller execution via DojoController ---
-func _execute_controller(entrypoint: String, calldata: Array) -> void:
-	if _controller == null:
-		push_warning("[Dojo] Controller not available, falling back to sozo")
-		_execute_sozo(entrypoint, calldata)
-		return
-	print("[Dojo] Executing via Controller: %s(%s)" % [entrypoint, str(calldata)])
-	var calls: Array = [{
-		"contract_address": ACTIONS_CONTRACT,
-		"entrypoint": entrypoint,
-		"calldata": calldata
-	}]
-	var tx_result = _controller.execute(calls)
-	var result_str = str(tx_result) if tx_result != null else ""
-	print("[Dojo] Controller TX result: ", result_str)
-	if result_str == "" or result_str == "null":
-		# Execution failed, try sozo fallback
-		push_warning("[Dojo] Controller execute returned empty, falling back to sozo")
-		_execute_sozo(entrypoint, calldata)
-		return
-	tx_completed.emit(entrypoint, true, result_str)
-
-# --- Sozo execution (fallback / local dev) ---
+# --- Sozo execution ---
 func _execute_sozo(entrypoint: String, calldata: Array) -> void:
+	if _sozo_path == "":
+		push_error("[Dojo] sozo not found — install dojo toolkit")
+		tx_completed.emit(entrypoint, false, "")
+		return
 	var thread = Thread.new()
 	_pending_threads.append(thread)
-	thread.start(_run_sozo.bind(entrypoint, calldata, thread))
+	if FileAccess.file_exists(_manifest_path):
+		thread.start(_run_sozo.bind(entrypoint, calldata, thread))
+	else:
+		thread.start(_run_sozo_direct.bind(entrypoint, calldata, thread))
 
+# Dev mode: use tag + manifest
 func _run_sozo(entrypoint: String, calldata: Array, thread: Thread) -> void:
 	var args: PackedStringArray = [
 		"execute", ACTIONS_TAG, entrypoint
@@ -232,6 +263,88 @@ func _run_sozo(entrypoint: String, calldata: Array, thread: Thread) -> void:
 		tx_hash = output_str.get_slice("Transaction hash:", 1).strip_edges()
 
 	call_deferred("_on_sozo_done", entrypoint, exit_code, output_str, tx_hash, thread)
+
+# Export mode: find manifest on disk, use contract address + explicit credentials
+func _run_sozo_direct(entrypoint: String, calldata: Array, thread: Thread) -> void:
+	var manifest = _find_manifest()
+	if manifest == "":
+		call_deferred("_on_sozo_done", entrypoint, 1, "Scarb.toml not found on this machine", "", thread)
+		return
+	var args: PackedStringArray = [
+		"execute", ACTIONS_CONTRACT, entrypoint
+	]
+	for cd in calldata:
+		args.append(str(cd))
+	args.append("--wait")
+	args.append("--manifest-path")
+	args.append(manifest)
+	args.append("--rpc-url")
+	args.append(SLOT_RPC)
+	# Always pass account credentials explicitly in export mode
+	args.append("--account-address")
+	args.append(accounts[active_account_index]["address"])
+	args.append("--private-key")
+	args.append(accounts[active_account_index]["private_key"])
+
+	print("[Dojo] Export executing: %s %s" % [_sozo_path, " ".join(args)])
+
+	var output: Array = []
+	var exit_code = OS.execute(_sozo_path, args, output, true)
+	var output_str = str(output[0]) if output.size() > 0 else ""
+	var tx_hash = ""
+	if output_str.contains("Transaction hash:"):
+		tx_hash = output_str.get_slice("Transaction hash:", 1).strip_edges()
+
+	call_deferred("_on_sozo_done", entrypoint, exit_code, output_str, tx_hash, thread)
+
+# Search for the contracts manifest (export mode — _manifest_path points inside .app)
+func _find_manifest() -> String:
+	# Check bundled manifest inside .app — copy to /tmp since DMG is read-only
+	var exe_path = OS.get_executable_path()
+	var app_dir = exe_path.get_base_dir()
+	var bundled = app_dir + "/contracts/Scarb.toml"
+	if FileAccess.file_exists(bundled):
+		var tmp_dir = "/tmp/prophecy_contracts"
+		DirAccess.make_dir_recursive_absolute(tmp_dir + "/target/dev")
+		# Copy all contract files to writable /tmp
+		_copy_file(bundled, tmp_dir + "/Scarb.toml")
+		_copy_file(app_dir + "/contracts/dojo_dev.toml", tmp_dir + "/dojo_dev.toml")
+		var dir = DirAccess.open(app_dir + "/contracts/target/dev")
+		if dir:
+			dir.list_dir_begin()
+			var f = dir.get_next()
+			while f != "":
+				if f.ends_with(".json"):
+					_copy_file(app_dir + "/contracts/target/dev/" + f, tmp_dir + "/target/dev/" + f)
+				f = dir.get_next()
+		print("[Dojo] Copied bundled contracts to: ", tmp_dir)
+		return tmp_dir + "/Scarb.toml"
+	# Fall back to common locations on disk
+	var home = OS.get_environment("HOME")
+	var candidates: Array[String] = [
+		home + "/projects/prophecy-roguelite/contracts/Scarb.toml",
+		home + "/prophecy-roguelite/contracts/Scarb.toml",
+		home + "/Documents/prophecy-roguelite/contracts/Scarb.toml",
+		home + "/Desktop/prophecy-roguelite/contracts/Scarb.toml",
+		home + "/dev/prophecy-roguelite/contracts/Scarb.toml",
+		home + "/code/prophecy-roguelite/contracts/Scarb.toml",
+	]
+	for path in candidates:
+		if FileAccess.file_exists(path):
+			print("[Dojo] Found manifest at: ", path)
+			return path
+	print("[Dojo] Manifest not found")
+	return ""
+
+static func _copy_file(src: String, dst: String) -> void:
+	var f = FileAccess.open(src, FileAccess.READ)
+	if f:
+		var data = f.get_buffer(f.get_length())
+		f.close()
+		var out = FileAccess.open(dst, FileAccess.WRITE)
+		if out:
+			out.store_buffer(data)
+			out.close()
 
 func _on_sozo_done(entrypoint: String, exit_code: int, output: String, tx_hash: String, thread: Thread) -> void:
 	thread.wait_to_finish()

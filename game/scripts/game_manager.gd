@@ -128,7 +128,9 @@ func _parse_models(models: Dictionary) -> void:
 			trader = entry
 			_trader_created = true
 			state_updated.emit(trader)
+			print("[GM] Trader found: balance=%d was_created=%s" % [entry["balance"], was_created])
 			if not was_created:
+				print("[GM] >>> trader_created signal emitted")
 				trader_created.emit()
 
 		# Update all_traders for leaderboard
@@ -235,7 +237,9 @@ func resolve_market_on_chain(market_id: int, outcome: bool) -> void:
 	connection.execute("resolve_market", [market_id, outcome_int])
 
 func place_prediction(market_id: int, is_yes: bool, amount: int) -> void:
+	print("[GM] place_prediction called: market=%d is_busy=%s" % [market_id, is_busy])
 	if is_busy:
+		print("[GM] BLOCKED by is_busy!")
 		return
 	is_busy = true
 	var is_yes_int = 1 if is_yes else 0

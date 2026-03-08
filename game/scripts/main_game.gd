@@ -294,9 +294,10 @@ func _ready() -> void:
 	# Connect world boss updates
 	gm.world_boss_updated.connect(_on_world_boss_updated)
 
-	# Post-processing: WorldEnvironment glow + CRT overlay
-	_setup_post_processing()
-	_setup_crt_overlay()
+	# Post-processing: CRT + glow only in dev (screen_texture breaks in gl_compatibility export)
+	if FileAccess.file_exists(gm.connection._manifest_path):
+		_setup_post_processing()
+		_setup_crt_overlay()
 
 	# Diegetic UI: card slot brackets + letter spacing
 	_build_card_slot_brackets()
@@ -1105,6 +1106,12 @@ func _start() -> void:
 	start_status.text = "Connecting to Starknet..."
 	gm.connection.setup()
 	await gm.connection.connected
+	start_status.text = "Loading trader data..."
+	# Wait for entity subscription + refresh to process
+	await get_tree().create_timer(1.0).timeout
+	if gm._trader_created:
+		_show_dashboard()
+		return
 	start_status.text = "Creating trader account..."
 	gm.create_trader()
 
